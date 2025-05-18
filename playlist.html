@@ -7,7 +7,11 @@
   <script>
     function extractMoodKeywords(text) {
       const raw = text.toLowerCase().split(/[\s,.;!?]+/);
-      const moodTerms = ["sad", "happy", "calm", "emotional", "lonely", "excited", "angry", "joyful", "peaceful", "moody", "nostalgic", "romantic", "hopeful", "dark", "energetic", "soft", "mellow"];
+      const moodTerms = [
+        "sad", "happy", "calm", "emotional", "lonely", "excited",
+        "angry", "joyful", "peaceful", "moody", "nostalgic",
+        "romantic", "hopeful", "dark", "energetic", "soft", "mellow"
+      ];
       const matches = raw.filter(word => moodTerms.includes(word));
       return matches.length ? matches : ["emotional", "mellow"];
     }
@@ -15,6 +19,7 @@
     async function fetchMoodGenreTracks(genre, moodText) {
       const moodKeywords = extractMoodKeywords(moodText);
       const allTracks = [];
+
       const searchCombos = moodKeywords.map(mood => `${genre} ${mood}`);
       searchCombos.push(`${genre} emotional`);
       searchCombos.push(`${genre} vibe`);
@@ -93,6 +98,12 @@
       renderPlaylist(tracks);
     }
 
+    function regeneratePlaylist() {
+      const list = document.getElementById("playlist");
+      list.innerHTML = `<p class="text-gray-600 italic">⏳ Generating a fresh playlist...</p>`;
+      buildPlaylist();
+    }
+
     window.onload = buildPlaylist;
   </script>
   <script src="https://cdn.tailwindcss.com"></script>
@@ -104,7 +115,7 @@
   <ul id="playlist" class="max-w-2xl mx-auto list-none p-0"></ul>
 
   <div class="mt-10 flex flex-col sm:flex-row justify-center gap-4">
-    <button onclick="buildPlaylist()"
+    <button onclick="regeneratePlaylist()"
             class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">
       🔄 Regenerate This Playlist
     </button>
