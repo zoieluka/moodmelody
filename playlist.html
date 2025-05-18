@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Your Mood Playlist</title>
   <script>
-    const lastFmApiKey = "de8b1372bb7ccba147ad2618c1867233"; // Replace with your real key
+    const lastFmApiKey = "de8b1372bb7ccba147ad2618c1867233"; // Replace with your real Last.fm key
 
     async function fetchLastFmTracks() {
       const moodTag = localStorage.getItem("userMood") || "chill";
@@ -27,14 +27,24 @@
         data.tracks.track.forEach(track => {
           const li = document.createElement("li");
           li.className = "mb-4 flex gap-4 items-center";
+
+          // Safely get the best available image or fallback
+          const imageUrl = (track.image && track.image.length > 0)
+            ? track.image[track.image.length - 1]['#text']
+            : "";
+          const safeImage = imageUrl && imageUrl.trim() !== ""
+            ? imageUrl
+            : "https://via.placeholder.com/64?text=♪";
+
           li.innerHTML = `
-            <img src="${track.image[1]['#text'] || 'https://via.placeholder.com/64'}" class="w-16 h-16 rounded shadow" />
+            <img src="${safeImage}" class="w-16 h-16 rounded shadow" />
             <div>
               <p class="font-semibold">${track.name}</p>
               <p class="text-sm text-gray-600">${track.artist.name}</p>
               <a href="${track.url}" target="_blank" class="text-blue-600 text-sm underline">🔗 Listen on Last.fm</a>
             </div>
           `;
+
           list.appendChild(li);
         });
       } catch (err) {
