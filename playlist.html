@@ -32,11 +32,11 @@
         const li = document.createElement("li");
         li.className = "mb-6 flex gap-4 items-center";
 
-        // ✅ Image fallback logic
+        // ✅ FIXED: Safe image loading with fallback
         let safeImage = "https://via.placeholder.com/64?text=♪";
         if (Array.isArray(track.image)) {
           for (let i = track.image.length - 1; i >= 0; i--) {
-            const img = track.image[i]['#text'];
+            const img = track.image[i]?.['#text'];
             if (img && img.trim() !== "") {
               safeImage = img;
               break;
@@ -44,15 +44,17 @@
           }
         }
 
-        const query = encodeURIComponent(`${track.name} ${track.artist.name}`);
+        const trackName = track.name || "Unknown";
+        const artistName = track.artist?.name || "Unknown";
+        const query = encodeURIComponent(`${trackName} ${artistName}`);
         const spotifySearch = `https://open.spotify.com/search/${query}`;
         const appleMusicSearch = `https://music.apple.com/us/search?term=${query}`;
 
         li.innerHTML = `
-          <img src="${safeImage}" class="w-16 h-16 rounded shadow" />
+          <img src="${safeImage}" class="w-16 h-16 rounded shadow object-cover" />
           <div>
-            <p class="font-semibold">${track.name}</p>
-            <p class="text-sm text-gray-600">${track.artist.name}</p>
+            <p class="font-semibold">${trackName}</p>
+            <p class="text-sm text-gray-600">${artistName}</p>
             <a href="${track.url}" target="_blank" class="text-blue-600 text-sm underline">🔗 Last.fm</a><br/>
             <a href="${spotifySearch}" target="_blank" class="text-green-600 text-sm underline mr-2">🎧 Spotify</a>
             <a href="${appleMusicSearch}" target="_blank" class="text-pink-600 text-sm underline">🍎 Apple Music</a>
@@ -62,7 +64,7 @@
         list.appendChild(li);
       });
 
-      // ✅ Use original mood input in the subtitle
+      // ✅ Use exact mood text in message
       const moodText = localStorage.getItem("userMoodText");
       const genre = localStorage.getItem("userGenreTag");
       const moodNote = document.getElementById("moodNote");
