@@ -4,130 +4,99 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Your Mood Playlist</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
   <script>
-    function extractMoodKeywords(text) {
-      const raw = text.toLowerCase().split(/[\s,.;!?]+/);
-      const moodTerms = [
-        "sad", "happy", "calm", "emotional", "lonely", "excited",
-        "angry", "joyful", "peaceful", "moody", "nostalgic",
-        "romantic", "hopeful", "dark", "energetic", "soft", "mellow"
-      ];
-      const matches = raw.filter(word => moodTerms.includes(word));
-      return matches.length ? matches : ["emotional", "mellow"];
-    }
-
-    async function fetchMoodGenreTracks(genre, moodText) {
-      const moodKeywords = extractMoodKeywords(moodText);
-      const randomModifiers = ["mix", "session", "vibe", "track", "drop", "edition", "live", "set", "energy", "flow"];
+    async function fetchTracks() {
+      const genre = localStorage.getItem("userGenreTag");
+      const mood = localStorage.getItem("userMoodText");
+      const terms = [`${genre} ${mood} playlist`, `${genre} ${mood} mix`, `${genre} vibe`];
+      const seenArtists = new Set();
       const allTracks = [];
 
-      const searchCombos = [];
-      moodKeywords.forEach(mood => {
-        const randomWord = randomModifiers[Math.floor(Math.random() * randomModifiers.length)];
-        searchCombos.push(`${genre} ${mood} ${randomWord}`);
-      });
-
-      searchCombos.push(`${genre} emotional ${randomModifiers[Math.floor(Math.random() * randomModifiers.length)]}`);
-      searchCombos.push(`${genre} vibe ${randomModifiers[Math.floor(Math.random() * randomModifiers.length)]}`);
-
-      for (let term of searchCombos) {
+      for (let term of terms) {
         const url = `https://itunes.apple.com/search?term=${encodeURIComponent(term)}&media=music&limit=10`;
-
         try {
           const res = await fetch(url);
           const data = await res.json();
           if (data.results?.length) {
-            allTracks.push(...data.results);
+            for (const track of data.results) {
+              if (!seenArtists.has(track.artistName)) {
+                seenArtists.add(track.artistName);
+                allTracks.push(track);
+              }
+              if (allTracks.length === 10) break;
+            }
           }
         } catch (err) {
-          console.error(`Error fetching "${term}":`, err);
+          console.error("Failed to fetch songs:", err);
         }
+        if (allTracks.length === 10) break;
       }
 
-      const seenArtists = new Set();
-      const uniqueTracks = [];
-
-      for (let track of allTracks) {
-        const artist = track.artistName;
-        if (!seenArtists.has(artist)) {
-          seenArtists.add(artist);
-          uniqueTracks.push(track);
-        }
-        if (uniqueTracks.length === 10) break;
-      }
-
-      return uniqueTracks;
+      renderSlider(allTracks);
     }
 
-    function renderPlaylist(tracks) {
-      const list = document.getElementById("playlist");
-      list.innerHTML = "";
-
-      if (tracks.length === 0) {
-        list.innerHTML = `<p class="text-red-600">⚠️ No matching songs found. Try adjusting your mood or genre.</p>`;
-        return;
-      }
+    function renderSlider(tracks) {
+      const swiperWrapper = document.querySelector(".swiper-wrapper");
+      swiperWrapper.innerHTML = "";
 
       tracks.forEach(track => {
-        const artwork = track.artworkUrl100?.replace("100x100bb", "200x200bb") || "https://via.placeholder.com/64?text=♪";
+        const artwork = track.artworkUrl100?.replace("100x100bb", "300x300bb") || "https://via.placeholder.com/300x300?text=♪";
         const name = track.trackName || "Unknown";
         const artist = track.artistName || "Unknown";
-        const appleMusicUrl = track.trackViewUrl || `https://music.apple.com/us/search?term=${encodeURIComponent(name + ' ' + artist)}`;
-        const spotifySearchUrl = `https://open.spotify.com/search/${encodeURIComponent(name + ' ' + artist)}`;
+        const appleMusicUrl = track.trackViewUrl || "#";
 
-        const li = document.createElement("li");
-        li.className = "mb-6 flex gap-4 items-center";
-
-        li.innerHTML = `
-          <img src="${artwork}" class="w-16 h-16 rounded shadow object-cover" />
-          <div>
-            <p class="font-semibold">${name}</p>
-            <p class="text-sm text-gray-600">${artist}</p>
-            <a href="${appleMusicUrl}" target="_blank" class="text-pink-600 text-sm underline">🍎 Apple Music</a><br/>
-            <a href="${spotifySearchUrl}" target="_blank" class="text-green-600 text-sm underline">🎧 Spotify</a>
-          </div>
+        const slide = document.createElement("div");
+        slide.className = "swiper-slide text-center p-4";
+        slide.innerHTML = `
+          <img src="${artwork}" alt="Artwork" class="mx-auto rounded-xl shadow-md mb-4" />
+          <p class="font-semibold text-lg">${name}</p>
+          <p class="text-sm text-gray-600 mb-2">by ${artist}</p>
+          <a href="${appleMusicUrl}" target="_blank" class="text-blue-500 underline">🎵 Listen on Apple Music</a>
         `;
 
-        list.appendChild(li);
+        swiperWrapper.appendChild(slide);
       });
 
-      const moodText = localStorage.getItem("userMoodText");
-      const genre = localStorage.getItem("userGenreTag");
-      const moodNote = document.getElementById("moodNote");
-      moodNote.textContent = `This playlist reflects how you felt: "${moodText}" — delivered in the "${genre}" genre.`;
+      new Swiper(".swiper", {
+        loop: true,
+        pagination: {
+          el: ".swiper-pagination",
+          clickable: true,
+        },
+        navigation: {
+          nextEl: ".swiper-button-next",
+          prevEl: ".swiper-button-prev",
+        },
+        slidesPerView: 1,
+        spaceBetween: 30,
+      });
     }
 
-    async function buildPlaylist() {
-      const genre = localStorage.getItem("userGenreTag");
-      const mood = localStorage.getItem("userMoodText");
-      const tracks = await fetchMoodGenreTracks(genre, mood);
-      renderPlaylist(tracks);
-    }
-
-    function regeneratePlaylist() {
-      const list = document.getElementById("playlist");
-      list.innerHTML = `<p class="text-gray-600 italic">⏳ Generating a fresh playlist...</p>`;
-      buildPlaylist();
-    }
-
-    window.onload = buildPlaylist;
+    window.onload = fetchTracks;
   </script>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-blue-100 min-h-screen p-6">
-  <h1 class="text-3xl font-bold text-center text-green-800 mb-2">🎧 Your Mood-Based Playlist</h1>
+  <h1 class="text-3xl font-bold text-center text-green-800 mb-6">🎧 Your Mood-Based Playlist</h1>
   <p id="moodNote" class="text-center text-gray-700 mb-6 text-lg"></p>
 
-  <ul id="playlist" class="max-w-2xl mx-auto list-none p-0"></ul>
+  <div class="swiper max-w-xl mx-auto">
+    <div class="swiper-wrapper">
+      <!-- Slides will be inserted here -->
+    </div>
+    <!-- Add Pagination -->
+    <div class="swiper-pagination"></div>
 
-  <div class="mt-10 flex flex-col sm:flex-row justify-center gap-4">
-    <button onclick="regeneratePlaylist()"
-            class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">
-      🔄 Regenerate This Playlist
-    </button>
-    <button onclick="window.location.href='index.html'"
-            class="bg-yellow-500 text-white px-6 py-2 rounded hover:bg-yellow-600">
-      🏠 New Mood + Genre
+    <!-- Add Navigation -->
+    <div class="swiper-button-next"></div>
+    <div class="swiper-button-prev"></div>
+  </div>
+
+  <div class="mt-8 flex justify-center">
+    <button onclick="window.location.href='index.html'" class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">
+      🔙 Try a New Mood
     </button>
   </div>
 </body>
