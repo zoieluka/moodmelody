@@ -7,10 +7,12 @@
   <script>
     const twinwordApiKey = "151c80fd18msh6bc1208d6296b6ep1b10b8jsna5e668379b92";
 
-    async function generatePlaylist() {
+    async function generateMoodGenrePlaylist() {
       const moodInput = document.getElementById("moodText").value.trim();
-      if (!moodInput) {
-        alert("Please describe how you're feeling.");
+      const genreInput = document.getElementById("genreSelect").value;
+
+      if (!moodInput || !genreInput) {
+        alert("Please describe your mood AND select a genre.");
         return;
       }
 
@@ -28,30 +30,24 @@
         const data = await res.json();
         const sentiment = data.type?.toLowerCase();
 
-        const tagMap = {
+        const moodMap = {
           positive: "happy",
           negative: "sad",
           neutral: "chill"
         };
 
-        const musicTag = tagMap[sentiment] || "mood";
-        localStorage.setItem("userMood", musicTag);
+        const moodTag = moodMap[sentiment] || "mood";
+
+        // Save both tags for use in playlist
+        localStorage.setItem("userMoodTag", moodTag);
+        localStorage.setItem("userGenreTag", genreInput);
+
         window.location.href = "playlist.html";
 
       } catch (err) {
-        console.error("❌ Sentiment API call failed:", err);
-        alert("❌ API error – check the console for details.");
+        console.error("Error analyzing mood:", err);
+        alert("Could not analyze your mood. Please try again.");
       }
-    }
-
-    function generateFromGenre() {
-      const selected = document.getElementById("genreSelect").value;
-      if (!selected) {
-        alert("Please pick a genre.");
-        return;
-      }
-      localStorage.setItem("userMood", selected);
-      window.location.href = "playlist.html";
     }
   </script>
   <script src="https://cdn.tailwindcss.com"></script>
@@ -59,35 +55,32 @@
 <body class="bg-yellow-100 min-h-screen flex flex-col items-center justify-center p-8">
   <h1 class="text-4xl font-bold text-red-600 mb-6">🎵 MoodMelody 🎵</h1>
 
-  <div class="w-full max-w-md bg-white p-6 rounded-xl shadow-md mb-8">
-    <label for="moodText" class="block text-lg font-medium text-gray-700 mb-2">Describe your mood:</label>
-    <input id="moodText" type="text" placeholder="e.g., I feel anxious and overwhelmed"
-           class="w-full p-2 border border-gray-300 rounded mb-4"/>
+  <div class="w-full max-w-md bg-white p-6 rounded-xl shadow-md space-y-6">
+    <div>
+      <label for="moodText" class="block text-lg font-medium text-gray-700 mb-2">How are you feeling?</label>
+      <input id="moodText" type="text" placeholder="e.g., I feel inspired but calm"
+             class="w-full p-2 border border-gray-300 rounded"/>
+    </div>
 
-    <button onclick="generatePlaylist()"
-            class="w-full bg-red-500 text-white py-2 rounded hover:bg-red-600">
-      Generate Playlist from Mood
-    </button>
-  </div>
+    <div>
+      <label for="genreSelect" class="block text-lg font-medium text-gray-700 mb-2">Preferred Genre:</label>
+      <select id="genreSelect" class="w-full p-2 border border-gray-300 rounded">
+        <option value="">-- Select Genre --</option>
+        <option value="pop">Pop</option>
+        <option value="rock">Rock</option>
+        <option value="lofi">Lofi</option>
+        <option value="metal">Metal</option>
+        <option value="classical">Classical</option>
+        <option value="hip hop">Hip Hop</option>
+        <option value="electronic">Electronic</option>
+        <option value="r&b">R&B</option>
+        <option value="chill">Chill</option>
+      </select>
+    </div>
 
-  <div class="w-full max-w-md bg-white p-6 rounded-xl shadow-md">
-    <label for="genreSelect" class="block text-lg font-medium text-gray-700 mb-2">Or pick a genre:</label>
-    <select id="genreSelect" class="w-full p-2 border border-gray-300 rounded mb-4">
-      <option value="">-- Select a genre --</option>
-      <option value="pop">Pop</option>
-      <option value="rock">Rock</option>
-      <option value="lofi">Lofi</option>
-      <option value="metal">Metal</option>
-      <option value="classical">Classical</option>
-      <option value="sad">Sad</option>
-      <option value="happy">Happy</option>
-      <option value="chill">Chill</option>
-      <option value="experimental">Experimental</option>
-    </select>
-
-    <button onclick="generateFromGenre()"
-            class="w-full bg-green-500 text-white py-2 rounded hover:bg-green-600">
-      Generate Playlist from Genre
+    <button onclick="generateMoodGenrePlaylist()"
+            class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">
+      Generate Playlist 🎶
     </button>
   </div>
 </body>
