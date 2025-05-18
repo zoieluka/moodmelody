@@ -5,12 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Your Mood Playlist</title>
   <script>
-    // 🎵 Fetch mood + genre relevant tracks
     async function fetchMoodGenreTracks(genre, moodText) {
       const moodKeywords = extractMoodKeywords(moodText);
       const allTracks = [];
 
-      // Combine genre with each mood keyword
       for (let mood of moodKeywords) {
         const term = `${genre} ${mood}`.trim();
         const url = `https://itunes.apple.com/search?term=${encodeURIComponent(term)}&media=music&limit=10`;
@@ -26,7 +24,7 @@
         }
       }
 
-      // Filter to unique artists only
+      // Filter to one song per artist (unique)
       const seenArtists = new Set();
       const uniqueTracks = [];
 
@@ -36,22 +34,19 @@
           seenArtists.add(artist);
           uniqueTracks.push(track);
         }
+        if (uniqueTracks.length === 10) break; // ✅ Stop at exactly 10
       }
 
-      // Shuffle + return top 10 diverse songs
-      return uniqueTracks.sort(() => Math.random() - 0.5).slice(0, 10);
+      return uniqueTracks;
     }
 
-    // ✨ Extract keywords from mood text
     function extractMoodKeywords(text) {
       const raw = text.toLowerCase().split(/[\s,.;!?]+/);
-      const moods = raw.filter(word =>
-        ["sad", "happy", "calm", "emotional", "lonely", "excited", "angry", "joyful", "peaceful", "moody", "nostalgic", "romantic", "hopeful", "dark", "energetic", "soft", "mellow"].includes(word)
-      );
-      return moods.length ? moods : ["emotional", "chill", "vibe"];
+      const valid = ["sad", "happy", "calm", "emotional", "lonely", "excited", "angry", "joyful", "peaceful", "moody", "nostalgic", "romantic", "hopeful", "dark", "energetic", "soft", "mellow"];
+      const moods = raw.filter(word => valid.includes(word));
+      return moods.length ? moods : ["emotional", "vibe", "mellow"];
     }
 
-    // 🎧 Render results
     function renderPlaylist(tracks) {
       const list = document.getElementById("playlist");
       list.innerHTML = "";
@@ -102,7 +97,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-blue-100 min-h-screen p-6">
-  <h1 class="text-3xl font-bold text-center text-green-800 mb-2">🎧 Your Mood + Genre Playlist</h1>
+  <h1 class="text-3xl font-bold text-center text-green-800 mb-2">🎧 Your Mood-Based Playlist</h1>
   <p id="moodNote" class="text-center text-gray-700 mb-6 text-lg"></p>
 
   <ul id="playlist" class="max-w-2xl mx-auto list-none p-0"></ul>
