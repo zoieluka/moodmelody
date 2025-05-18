@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Your Mood Playlist</title>
   <script>
-    const lastFmApiKey = "de8b1372bb7ccba147ad2618c1867233"; // Replace with your real Last.fm key
+    const lastFmApiKey = "de8b1372bb7ccba147ad2618c1867233";
 
     async function fetchLastFmTracks() {
       const moodTag = localStorage.getItem("userMood") || "chill";
@@ -19,32 +19,32 @@
         const list = document.getElementById("playlist");
         list.innerHTML = "";
 
-        if (!data.tracks || !data.tracks.track || data.tracks.track.length === 0) {
+        if (!data.tracks?.track?.length) {
           list.innerHTML = `<p class="text-red-600">⚠️ No tracks found for mood "${moodTag}".</p>`;
           return;
         }
 
         data.tracks.track.forEach(track => {
           const li = document.createElement("li");
-          li.className = "mb-4 flex gap-4 items-center";
+          li.className = "mb-6 flex gap-4 items-center";
 
-          // Safely get the best available image or fallback
-          const imageUrl = (track.image && track.image.length > 0)
-            ? track.image[track.image.length - 1]['#text']
-            : "";
-          const safeImage = imageUrl && imageUrl.trim() !== ""
-            ? imageUrl
-            : "https://via.placeholder.com/64?text=♪";
+          const imageUrl = track.image?.[track.image.length - 1]['#text'] || "";
+          const safeImage = imageUrl?.trim() !== "" ? imageUrl : "https://via.placeholder.com/64?text=♪";
+
+          const query = encodeURIComponent(`${track.name} ${track.artist.name}`);
+          const spotifySearch = `https://open.spotify.com/search/${query}`;
+          const appleMusicSearch = `https://music.apple.com/us/search?term=${query}`;
 
           li.innerHTML = `
             <img src="${safeImage}" class="w-16 h-16 rounded shadow" />
             <div>
               <p class="font-semibold">${track.name}</p>
               <p class="text-sm text-gray-600">${track.artist.name}</p>
-              <a href="${track.url}" target="_blank" class="text-blue-600 text-sm underline">🔗 Listen on Last.fm</a>
+              <a href="${track.url}" target="_blank" class="text-blue-600 text-sm underline">🔗 Last.fm</a><br/>
+              <a href="${spotifySearch}" target="_blank" class="text-green-600 text-sm underline mr-2">🎧 Spotify</a>
+              <a href="${appleMusicSearch}" target="_blank" class="text-pink-600 text-sm underline">🍎 Apple Music</a>
             </div>
           `;
-
           list.appendChild(li);
         });
       } catch (err) {
