@@ -5,53 +5,70 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>MoodMelody</title>
   <script>
-    const twinwordApiKey = "151c80fd18msh6bc1208d6296b6ep1b10b8jsna5e668379b92";
+    const twinwordApiKey = "151c80fd18msh6bc1208d6296b6ep1b10b8jsna5e668379b92"; // your actual API key
+
+    function getDominantEmotion(emotions) {
+      let max = -1;
+      let dominant = "neutral";
+      for (const [emotion, score] of Object.entries(emotions)) {
+        if (score > max) {
+          max = score;
+          dominant = emotion;
+        }
+      }
+      return dominant;
+    }
+
+    function mapEmotionToMusicTag(emotion) {
+      switch (emotion) {
+        case "sadness": return "acoustic";
+        case "anger": return "metal";
+        case "joy": return "pop";
+        case "fear": return "ambient";
+        case "surprise": return "experimental";
+        default: return "chill";
+      }
+    }
 
     async function generatePlaylist() {
       const moodInput = document.getElementById("moodText").value.trim();
       if (!moodInput) {
-        alert("Please enter your mood!");
+        alert("Please describe how you're feeling.");
         return;
       }
 
       try {
-        const response = await fetch("https://twinword-sentiment-analysis.p.rapidapi.com/analyze/", {
+        const res = await fetch("https://twinword-emotion-analysis-v1.p.rapidapi.com/analyze/", {
           method: "POST",
           headers: {
             "content-type": "application/x-www-form-urlencoded",
             "X-RapidAPI-Key": twinwordApiKey,
-            "X-RapidAPI-Host": "twinword-sentiment-analysis.p.rapidapi.com"
+            "X-RapidAPI-Host": "twinword-emotion-analysis-v1.p.rapidapi.com"
           },
           body: new URLSearchParams({ text: moodInput })
         });
 
-        const data = await response.json();
+        const data = await res.json();
 
         if (data.result_code !== "200") {
-          console.error("API Error:", data);
-          alert("Could not analyze mood. Please try again later.");
+          console.error("API error:", data);
+          alert("Could not detect emotion. Please try again.");
           return;
         }
 
-        let mood = "neutral";
-        if (data.score > 0.5) {
-          mood = "happy";
-        } else if (data.score < -0.5) {
-          mood = "sad";
-        }
+        const dominantEmotion = getDominantEmotion(data.emotion);
+        const musicTag = mapEmotionToMusicTag(dominantEmotion);
 
-        console.log("Mood:", mood, "| Score:", data.score);
+        console.log("Dominant emotion:", dominantEmotion, "| Tag:", musicTag);
 
-        localStorage.setItem("userMood", mood);
-        window.location.href = "playlist.html"; // redirect to your playlist page
-
+        localStorage.setItem("userMood", musicTag);
+        window.location.href = "playlist.html";
       } catch (err) {
-        console.error("Error fetching sentiment:", err);
-        alert("An error occurred while analyzing your mood.");
+        console.error("Fetch error:", err);
+        alert("There was a problem analyzing your mood.");
       }
     }
   </script>
-
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-yellow-100 min-h-screen flex flex-col items-center justify-center p-8">
@@ -59,7 +76,7 @@
 
   <div class="w-full max-w-md bg-white p-6 rounded-xl shadow-md">
     <label for="moodText" class="block text-lg font-medium text-gray-700 mb-2">Describe your mood:</label>
-    <input id="moodText" type="text" placeholder="e.g., I feel excited for the weekend"
+    <input id="moodText" type="text" placeholder="e.g., I feel empty and alone"
            class="w-full p-2 border border-gray-300 rounded mb-4"/>
 
     <button onclick="generatePlaylist()"
