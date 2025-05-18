@@ -39,6 +39,7 @@
         const moodTag = moodMap[sentiment] || "mood";
 
         localStorage.setItem("userMoodTag", moodTag);
+        localStorage.setItem("userMoodText", moodInput); // ✅ Store the full user mood text
         localStorage.setItem("userGenreTag", genreInput);
 
         window.location.href = "playlist.html";
@@ -57,7 +58,7 @@
   <div class="w-full max-w-md bg-white p-6 rounded-xl shadow-md space-y-6">
     <div>
       <label for="moodText" class="block text-lg font-medium text-gray-700 mb-2">How are you feeling?</label>
-      <input id="moodText" type="text" placeholder="e.g., I feel relaxed and optimistic"
+      <input id="moodText" type="text" placeholder="e.g., I feel hopeful but tired"
              class="w-full p-2 border border-gray-300 rounded"/>
     </div>
 
