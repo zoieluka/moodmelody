@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>MoodMelody</title>
   <script>
-    const twinwordApiKey = "151c80fd18msh6bc1208d6296b6ep1b10b8jsna5e668379b92";
+    const twinwordApiKey = "your-twinword-api-key-here"; // Replace with your actual key
 
     async function generateMoodGenrePlaylist() {
       const moodInput = document.getElementById("moodText").value.trim();
@@ -38,10 +38,25 @@
 
         const moodTag = moodMap[sentiment] || "mood";
 
+        // Save to localStorage for use on playlist.html
         localStorage.setItem("userMoodTag", moodTag);
-        localStorage.setItem("userMoodText", moodInput); // save full input
+        localStorage.setItem("userMoodText", moodInput);
         localStorage.setItem("userGenreTag", genreInput);
 
+        // ✅ Save mood/genre to Supabase
+        fetch('/api/saveMood', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            moodText: moodInput,
+            genre: genreInput
+          })
+        })
+        .then(res => res.json())
+        .then(data => console.log('✅ Mood saved:', data))
+        .catch(err => console.error('❌ Save failed:', err));
+
+        // Redirect to playlist page
         window.location.href = "playlist.html";
 
       } catch (err) {
