@@ -5,14 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Your Mood Playlist</title>
   <script>
-    // 🎵 Fetch diverse tracks from iTunes API
-    async function fetchTracksByGenre(genre) {
-      const modifiers = ["", "new", "indie", "fresh", "rising", "trending"];
+    // 🎵 Fetch mood + genre relevant tracks
+    async function fetchMoodGenreTracks(genre, moodText) {
+      const moodKeywords = extractMoodKeywords(moodText);
       const allTracks = [];
 
-      for (let mod of modifiers) {
-        const term = `${genre} ${mod}`.trim();
-        const url = `https://itunes.apple.com/search?term=${encodeURIComponent(term)}&media=music&limit=5`;
+      // Combine genre with each mood keyword
+      for (let mood of moodKeywords) {
+        const term = `${genre} ${mood}`.trim();
+        const url = `https://itunes.apple.com/search?term=${encodeURIComponent(term)}&media=music&limit=10`;
 
         try {
           const res = await fetch(url);
@@ -21,33 +22,42 @@
             allTracks.push(...data.results);
           }
         } catch (err) {
-          console.error(`Error fetching term "${term}":`, err);
+          console.error(`Error fetching "${term}":`, err);
         }
       }
 
-      // Deduplicate by trackId or name+artist
-      const seen = new Set();
-      const unique = [];
+      // Filter to unique artists only
+      const seenArtists = new Set();
+      const uniqueTracks = [];
 
-      for (const track of allTracks) {
-        const id = track.trackId || `${track.trackName}-${track.artistName}`;
-        if (!seen.has(id)) {
-          seen.add(id);
-          unique.push(track);
+      for (let track of allTracks) {
+        const artist = track.artistName;
+        if (!seenArtists.has(artist)) {
+          seenArtists.add(artist);
+          uniqueTracks.push(track);
         }
       }
 
-      // Shuffle and return top 10
-      return unique.sort(() => Math.random() - 0.5).slice(0, 10);
+      // Shuffle + return top 10 diverse songs
+      return uniqueTracks.sort(() => Math.random() - 0.5).slice(0, 10);
     }
 
-    // 🎧 Render playlist with album images + links
+    // ✨ Extract keywords from mood text
+    function extractMoodKeywords(text) {
+      const raw = text.toLowerCase().split(/[\s,.;!?]+/);
+      const moods = raw.filter(word =>
+        ["sad", "happy", "calm", "emotional", "lonely", "excited", "angry", "joyful", "peaceful", "moody", "nostalgic", "romantic", "hopeful", "dark", "energetic", "soft", "mellow"].includes(word)
+      );
+      return moods.length ? moods : ["emotional", "chill", "vibe"];
+    }
+
+    // 🎧 Render results
     function renderPlaylist(tracks) {
       const list = document.getElementById("playlist");
       list.innerHTML = "";
 
       if (tracks.length === 0) {
-        list.innerHTML = `<p class="text-red-600">⚠️ No songs found. Try again.</p>`;
+        list.innerHTML = `<p class="text-red-600">⚠️ No mood-matching tracks found. Try a different combo.</p>`;
         return;
       }
 
@@ -74,7 +84,6 @@
         list.appendChild(li);
       });
 
-      // 🎤 Mood reflection
       const moodText = localStorage.getItem("userMoodText");
       const genre = localStorage.getItem("userGenreTag");
       const moodNote = document.getElementById("moodNote");
@@ -82,8 +91,9 @@
     }
 
     async function buildPlaylist() {
-      const genreTag = localStorage.getItem("userGenreTag");
-      const tracks = await fetchTracksByGenre(genreTag);
+      const genre = localStorage.getItem("userGenreTag");
+      const mood = localStorage.getItem("userMoodText");
+      const tracks = await fetchMoodGenreTracks(genre, mood);
       renderPlaylist(tracks);
     }
 
@@ -92,7 +102,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-blue-100 min-h-screen p-6">
-  <h1 class="text-3xl font-bold text-center text-green-800 mb-2">🎧 Your Custom Playlist</h1>
+  <h1 class="text-3xl font-bold text-center text-green-800 mb-2">🎧 Your Mood + Genre Playlist</h1>
   <p id="moodNote" class="text-center text-gray-700 mb-6 text-lg"></p>
 
   <ul id="playlist" class="max-w-2xl mx-auto list-none p-0"></ul>
