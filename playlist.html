@@ -32,8 +32,17 @@
         const li = document.createElement("li");
         li.className = "mb-6 flex gap-4 items-center";
 
-        const imageUrl = track.image?.[track.image.length - 1]['#text'] || "";
-        const safeImage = imageUrl && imageUrl.trim() !== "" ? imageUrl : "https://via.placeholder.com/64?text=♪";
+        // ✅ Improved image fallback logic
+        let safeImage = "https://via.placeholder.com/64?text=♪";
+        if (Array.isArray(track.image)) {
+          for (let i = track.image.length - 1; i >= 0; i--) {
+            const img = track.image[i]['#text'];
+            if (img && img.trim() !== "") {
+              safeImage = img;
+              break;
+            }
+          }
+        }
 
         const query = encodeURIComponent(`${track.name} ${track.artist.name}`);
         const spotifySearch = `https://open.spotify.com/search/${query}`;
