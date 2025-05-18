@@ -3,71 +3,85 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Your Mood Playlist</title>
+  <title>MoodMelody</title>
   <script>
-    const lastFmApiKey = "de8b1372bb7ccba147ad2618c1867233";
+    const twinwordApiKey = "151c80fd18msh6bc1208d6296b6ep1b10b8jsna5e668379b92";
 
-    async function fetchLastFmTracks() {
-      const moodTag = localStorage.getItem("userMood") || "chill";
+    async function generateCombinedPlaylist() {
+      const moodInput = document.getElementById("moodText").value.trim();
+      const genreInput = document.getElementById("genreSelect").value;
 
-      const url = `https://ws.audioscrobbler.com/2.0/?method=tag.gettoptracks&tag=${moodTag}&api_key=${lastFmApiKey}&format=json&limit=10`;
-
-      try {
-        const res = await fetch(url);
-        const data = await res.json();
-
-        const list = document.getElementById("playlist");
-        list.innerHTML = "";
-
-        if (!data.tracks?.track?.length) {
-          list.innerHTML = `<p class="text-red-600">⚠️ No tracks found for mood "${moodTag}".</p>`;
-          return;
-        }
-
-        data.tracks.track.forEach(track => {
-          const li = document.createElement("li");
-          li.className = "mb-6 flex gap-4 items-center";
-
-          const imageUrl = track.image?.[track.image.length - 1]['#text'] || "";
-          const safeImage = imageUrl?.trim() !== "" ? imageUrl : "https://via.placeholder.com/64?text=♪";
-
-          const query = encodeURIComponent(`${track.name} ${track.artist.name}`);
-          const spotifySearch = `https://open.spotify.com/search/${query}`;
-          const appleMusicSearch = `https://music.apple.com/us/search?term=${query}`;
-
-          li.innerHTML = `
-            <img src="${safeImage}" class="w-16 h-16 rounded shadow" />
-            <div>
-              <p class="font-semibold">${track.name}</p>
-              <p class="text-sm text-gray-600">${track.artist.name}</p>
-              <a href="${track.url}" target="_blank" class="text-blue-600 text-sm underline">🔗 Last.fm</a><br/>
-              <a href="${spotifySearch}" target="_blank" class="text-green-600 text-sm underline mr-2">🎧 Spotify</a>
-              <a href="${appleMusicSearch}" target="_blank" class="text-pink-600 text-sm underline">🍎 Apple Music</a>
-            </div>
-          `;
-          list.appendChild(li);
-        });
-      } catch (err) {
-        console.error(err);
-        document.getElementById("playlist").innerHTML = `<p class="text-red-600">⚠️ Error loading playlist. Please try again later.</p>`;
+      if (!moodInput && !genreInput) {
+        alert("Please enter a mood or pick a genre.");
+        return;
       }
-    }
 
-    window.onload = () => {
-      fetchLastFmTracks();
-    };
+      let moodTag = null;
+
+      if (moodInput) {
+        try {
+          const res = await fetch("https://twinword-sentiment-analysis.p.rapidapi.com/analyze/", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/x-www-form-urlencoded",
+              "X-RapidAPI-Key": twinwordApiKey,
+              "X-RapidAPI-Host": "twinword-sentiment-analysis.p.rapidapi.com"
+            },
+            body: new URLSearchParams({ text: moodInput })
+          });
+
+          const data = await res.json();
+          const sentiment = data.type?.toLowerCase();
+
+          const tagMap = {
+            positive: "happy",
+            negative: "sad",
+            neutral: "chill"
+          };
+
+          moodTag = tagMap[sentiment] || null;
+        } catch (err) {
+          console.error("Error with sentiment API:", err);
+        }
+      }
+
+      if (moodTag) localStorage.setItem("moodTag", moodTag);
+      if (genreInput) localStorage.setItem("genreTag", genreInput);
+
+      window.location.href = "playlist.html";
+    }
   </script>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-blue-100 min-h-screen p-6">
-  <h1 class="text-3xl font-bold text-center text-green-800 mb-4">🎶 Your Mood Playlist</h1>
+<body class="bg-yellow-100 min-h-screen flex flex-col items-center justify-center p-8">
+  <h1 class="text-4xl font-bold text-red-600 mb-6">🎵 MoodMelody 🎵</h1>
 
-  <ul id="playlist" class="max-w-2xl mx-auto list-none p-0"></ul>
+  <div class="w-full max-w-md bg-white p-6 rounded-xl shadow-md space-y-6">
+    <div>
+      <label for="moodText" class="block text-lg font-medium text-gray-700 mb-2">Describe your mood:</label>
+      <input id="moodText" type="text" placeholder="e.g., I feel motivated and excited"
+             class="w-full p-2 border border-gray-300 rounded"/>
+    </div>
 
-  <div class="mt-8 flex justify-center gap-4">
-    <button onclick="window.location.href='index.html'"
-            class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">
-      🔁 Regenerate
+    <div>
+      <label for="genreSelect" class="block text-lg font-medium text-gray-700 mb-2">Optional: Pick a genre</label>
+      <select id="genreSelect" class="w-full p-2 border border-gray-300 rounded">
+        <option value="">-- None selected --</option>
+        <option value="pop">Pop</option>
+        <option value="rock">Rock</option>
+        <option value="lofi">Lofi</option>
+        <option value="metal">Metal</option>
+        <option value="classical">Classical</option>
+        <option value="sad">Sad</option>
+        <option value="happy">Happy</option>
+        <option value="chill">Chill</option>
+        <option value="experimental">Experimental</option>
+      </select>
+    </div>
+
+    <button onclick="generateCombinedPlaylist()"
+            class="w-full bg-red-500 text-white py-2 rounded hover:bg-red-600">
+      Generate Playlist 🎧
     </button>
   </div>
 </body>
