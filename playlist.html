@@ -19,7 +19,7 @@
       }
     }
 
-    function renderPlaylist(tracks, moodTag) {
+    function renderPlaylist(tracks) {
       const list = document.getElementById("playlist");
       list.innerHTML = "";
 
@@ -32,7 +32,7 @@
         const li = document.createElement("li");
         li.className = "mb-6 flex gap-4 items-center";
 
-        // ✅ Improved image fallback logic
+        // ✅ Image fallback logic
         let safeImage = "https://via.placeholder.com/64?text=♪";
         if (Array.isArray(track.image)) {
           for (let i = track.image.length - 1; i >= 0; i--) {
@@ -62,21 +62,17 @@
         list.appendChild(li);
       });
 
+      // ✅ Use original mood input in the subtitle
+      const moodText = localStorage.getItem("userMoodText");
+      const genre = localStorage.getItem("userGenreTag");
       const moodNote = document.getElementById("moodNote");
-      moodNote.textContent = `This playlist reflects your "${moodTag}" mood in the "${localStorage.getItem("userGenreTag")}" genre.`;
+      moodNote.textContent = `This playlist reflects how you felt: "${moodText}" — delivered in the "${genre}" genre.`;
     }
 
     async function buildPlaylist() {
       const genreTag = localStorage.getItem("userGenreTag");
-      const moodTag = localStorage.getItem("userMoodTag");
-
-      if (!genreTag) {
-        document.getElementById("playlist").innerHTML = `<p class="text-red-600">Missing genre. Please start again.</p>`;
-        return;
-      }
-
       const tracks = await fetchTracksByGenre(genreTag);
-      renderPlaylist(tracks, moodTag);
+      renderPlaylist(tracks);
     }
 
     window.onload = buildPlaylist;
