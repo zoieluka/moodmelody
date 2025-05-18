@@ -7,34 +7,33 @@
   <script>
     const lastFmApiKey = "de8b1372bb7ccba147ad2618c1867233";
 
-    async function fetchTracksByTag(tag) {
-      const url = `https://ws.audioscrobbler.com/2.0/?method=tag.gettoptracks&tag=${tag}&api_key=${lastFmApiKey}&format=json&limit=10`;
+    async function fetchTracksByGenre(genre) {
+      const url = `https://ws.audioscrobbler.com/2.0/?method=tag.gettoptracks&tag=${genre}&api_key=${lastFmApiKey}&format=json&limit=10`;
       try {
         const res = await fetch(url);
         const data = await res.json();
         return data.tracks?.track || [];
       } catch (err) {
-        console.error(`Error fetching tracks for tag "${tag}":`, err);
+        console.error("Error fetching tracks:", err);
         return [];
       }
     }
 
-    function renderTrackList(tracks) {
+    function renderPlaylist(tracks, moodTag) {
       const list = document.getElementById("playlist");
       list.innerHTML = "";
 
-      const unique = new Set();
+      if (tracks.length === 0) {
+        list.innerHTML = `<p class="text-red-600">⚠️ No songs found for your genre. Try again.</p>`;
+        return;
+      }
 
       tracks.forEach(track => {
-        const key = `${track.name}-${track.artist.name}`;
-        if (unique.has(key)) return;
-        unique.add(key);
-
         const li = document.createElement("li");
         li.className = "mb-6 flex gap-4 items-center";
 
         const imageUrl = track.image?.[track.image.length - 1]['#text'] || "";
-        const safeImage = imageUrl?.trim() !== "" ? imageUrl : "https://via.placeholder.com/64?text=♪";
+        const safeImage = imageUrl && imageUrl.trim() !== "" ? imageUrl : "https://via.placeholder.com/64?text=♪";
 
         const query = encodeURIComponent(`${track.name} ${track.artist.name}`);
         const spotifySearch = `https://open.spotify.com/search/${query}`;
@@ -54,39 +53,37 @@
         list.appendChild(li);
       });
 
-      if (unique.size === 0) {
-        list.innerHTML = `<p class="text-red-600">⚠️ No songs found. Try again!</p>`;
+      const moodNote = document.getElementById("moodNote");
+      moodNote.textContent = `This playlist reflects your "${moodTag}" mood in the "${localStorage.getItem("userGenreTag")}" genre.`;
+    }
+
+    async function buildPlaylist() {
+      const genreTag = localStorage.getItem("userGenreTag");
+      const moodTag = localStorage.getItem("userMoodTag");
+
+      if (!genreTag) {
+        document.getElementById("playlist").innerHTML = `<p class="text-red-600">Missing genre. Please start again.</p>`;
+        return;
       }
+
+      const tracks = await fetchTracksByGenre(genreTag);
+      renderPlaylist(tracks, moodTag);
     }
 
-    async function generatePlaylist() {
-      const moodTag = localStorage.getItem("moodTag");
-      const genreTag = localStorage.getItem("genreTag");
-
-      const promises = [];
-
-      if (moodTag) promises.push(fetchTracksByTag(moodTag));
-      if (genreTag) promises.push(fetchTracksByTag(genreTag));
-
-      const results = await Promise.all(promises);
-      const combinedTracks = results.flat();
-
-      renderTrackList(combinedTracks);
-    }
-
-    window.onload = generatePlaylist;
+    window.onload = buildPlaylist;
   </script>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-blue-100 min-h-screen p-6">
-  <h1 class="text-3xl font-bold text-center text-green-800 mb-4">🎶 Your Mood + Genre Playlist</h1>
+  <h1 class="text-3xl font-bold text-center text-green-800 mb-2">🎧 Your Custom Playlist</h1>
+  <p id="moodNote" class="text-center text-gray-700 mb-6 text-lg"></p>
 
   <ul id="playlist" class="max-w-2xl mx-auto list-none p-0"></ul>
 
   <div class="mt-8 flex justify-center gap-4">
     <button onclick="window.location.href='index.html'"
             class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">
-      🔁 Go Back
+      🔁 Start Over
     </button>
   </div>
 </body>
