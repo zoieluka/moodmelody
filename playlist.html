@@ -5,12 +5,25 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Your Mood Playlist</title>
   <script>
+    // ✨ Extract mood-relevant keywords from user's text input
+    function extractMoodKeywords(text) {
+      const raw = text.toLowerCase().split(/[\s,.;!?]+/);
+      const moodTerms = ["sad", "happy", "calm", "emotional", "lonely", "excited", "angry", "joyful", "peaceful", "moody", "nostalgic", "romantic", "hopeful", "dark", "energetic", "soft", "mellow"];
+      const matches = raw.filter(word => moodTerms.includes(word));
+      return matches.length ? matches : ["emotional", "mellow"];
+    }
+
+    // 🔍 Search iTunes with genre+mood and get diverse results
     async function fetchMoodGenreTracks(genre, moodText) {
       const moodKeywords = extractMoodKeywords(moodText);
       const allTracks = [];
 
-      for (let mood of moodKeywords) {
-        const term = `${genre} ${mood}`.trim();
+      // Create combined search terms
+      const searchCombos = moodKeywords.map(mood => `${genre} ${mood}`);
+      searchCombos.push(`${genre} emotional`);
+      searchCombos.push(`${genre} vibe`);
+
+      for (let term of searchCombos) {
         const url = `https://itunes.apple.com/search?term=${encodeURIComponent(term)}&media=music&limit=10`;
 
         try {
@@ -24,7 +37,7 @@
         }
       }
 
-      // Filter to one song per artist (unique)
+      // Keep only 1 track per artist
       const seenArtists = new Set();
       const uniqueTracks = [];
 
@@ -34,25 +47,19 @@
           seenArtists.add(artist);
           uniqueTracks.push(track);
         }
-        if (uniqueTracks.length === 10) break; // ✅ Stop at exactly 10
+        if (uniqueTracks.length === 10) break;
       }
 
       return uniqueTracks;
     }
 
-    function extractMoodKeywords(text) {
-      const raw = text.toLowerCase().split(/[\s,.;!?]+/);
-      const valid = ["sad", "happy", "calm", "emotional", "lonely", "excited", "angry", "joyful", "peaceful", "moody", "nostalgic", "romantic", "hopeful", "dark", "energetic", "soft", "mellow"];
-      const moods = raw.filter(word => valid.includes(word));
-      return moods.length ? moods : ["emotional", "vibe", "mellow"];
-    }
-
+    // 🎨 Render the track list
     function renderPlaylist(tracks) {
       const list = document.getElementById("playlist");
       list.innerHTML = "";
 
       if (tracks.length === 0) {
-        list.innerHTML = `<p class="text-red-600">⚠️ No mood-matching tracks found. Try a different combo.</p>`;
+        list.innerHTML = `<p class="text-red-600">⚠️ No matching songs found. Try adjusting your mood or genre.</p>`;
         return;
       }
 
