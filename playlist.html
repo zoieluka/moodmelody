@@ -5,72 +5,59 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Your Mood Playlist</title>
   <script>
-    const lastFmApiKey = "de8b1372bb7ccba147ad2618c1867233";
-
+    // 🎵 Fetch tracks using iTunes API based on genre
     async function fetchTracksByGenre(genre) {
-      const url = `https://ws.audioscrobbler.com/2.0/?method=tag.gettoptracks&tag=${genre}&api_key=${lastFmApiKey}&format=json&limit=10`;
+      const url = `https://itunes.apple.com/search?term=${encodeURIComponent(genre)}&media=music&limit=10`;
       try {
         const res = await fetch(url);
         const data = await res.json();
-        return data.tracks?.track || [];
+        return data.results || [];
       } catch (err) {
-        console.error("Error fetching tracks:", err);
+        console.error("Error fetching tracks from iTunes:", err);
         return [];
       }
     }
 
+    // 🎧 Render playlist with reliable album art
     function renderPlaylist(tracks) {
       const list = document.getElementById("playlist");
       list.innerHTML = "";
 
       if (tracks.length === 0) {
-        list.innerHTML = `<p class="text-red-600">⚠️ No songs found for your genre. Try again.</p>`;
+        list.innerHTML = `<p class="text-red-600">⚠️ No songs found. Try again.</p>`;
         return;
       }
 
       tracks.forEach(track => {
+        const artwork = track.artworkUrl100?.replace("100x100bb", "200x200bb") || "https://via.placeholder.com/64?text=♪";
+        const name = track.trackName || "Unknown";
+        const artist = track.artistName || "Unknown";
+        const appleMusicUrl = track.trackViewUrl || `https://music.apple.com/us/search?term=${encodeURIComponent(name + ' ' + artist)}`;
+        const spotifySearchUrl = `https://open.spotify.com/search/${encodeURIComponent(name + ' ' + artist)}`;
+
         const li = document.createElement("li");
         li.className = "mb-6 flex gap-4 items-center";
 
-        // ✅ FIXED: Safe image loading with fallback
-        let safeImage = "https://via.placeholder.com/64?text=♪";
-        if (Array.isArray(track.image)) {
-          for (let i = track.image.length - 1; i >= 0; i--) {
-            const img = track.image[i]?.['#text'];
-            if (img && img.trim() !== "") {
-              safeImage = img;
-              break;
-            }
-          }
-        }
-
-        const trackName = track.name || "Unknown";
-        const artistName = track.artist?.name || "Unknown";
-        const query = encodeURIComponent(`${trackName} ${artistName}`);
-        const spotifySearch = `https://open.spotify.com/search/${query}`;
-        const appleMusicSearch = `https://music.apple.com/us/search?term=${query}`;
-
         li.innerHTML = `
-          <img src="${safeImage}" class="w-16 h-16 rounded shadow object-cover" />
+          <img src="${artwork}" class="w-16 h-16 rounded shadow object-cover" />
           <div>
-            <p class="font-semibold">${trackName}</p>
-            <p class="text-sm text-gray-600">${artistName}</p>
-            <a href="${track.url}" target="_blank" class="text-blue-600 text-sm underline">🔗 Last.fm</a><br/>
-            <a href="${spotifySearch}" target="_blank" class="text-green-600 text-sm underline mr-2">🎧 Spotify</a>
-            <a href="${appleMusicSearch}" target="_blank" class="text-pink-600 text-sm underline">🍎 Apple Music</a>
+            <p class="font-semibold">${name}</p>
+            <p class="text-sm text-gray-600">${artist}</p>
+            <a href="${appleMusicUrl}" target="_blank" class="text-pink-600 text-sm underline">🍎 Apple Music</a><br/>
+            <a href="${spotifySearchUrl}" target="_blank" class="text-green-600 text-sm underline">🎧 Spotify</a>
           </div>
         `;
 
         list.appendChild(li);
       });
 
-      // ✅ Use exact mood text in message
       const moodText = localStorage.getItem("userMoodText");
       const genre = localStorage.getItem("userGenreTag");
       const moodNote = document.getElementById("moodNote");
       moodNote.textContent = `This playlist reflects how you felt: "${moodText}" — delivered in the "${genre}" genre.`;
     }
 
+    // 🚀 Load playlist on page load
     async function buildPlaylist() {
       const genreTag = localStorage.getItem("userGenreTag");
       const tracks = await fetchTracksByGenre(genreTag);
