@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Mood History</title>
+  <script>
+    async function loadMoodHistory() {
+      try {
+        const res = await fetch('/api/getMoods');
+        const data = await res.json();
+
+        const list = document.getElementById("historyList");
+        list.innerHTML = "";
+
+        if (!Array.isArray(data) || data.length === 0) {
+          list.innerHTML = `<p class="text-red-600">⚠️ No mood history found.</p>`;
+          return;
+        }
+
+        data.forEach(entry => {
+          const li = document.createElement("li");
+          li.className = "mb-4 p-4 bg-white rounded shadow-md";
+
+          li.innerHTML = `
+            <p class="font-semibold">Mood: ${entry.mood_text}</p>
+            <p class="text-sm text-gray-600">Genre: ${entry.genre}</p>
+            <p class="text-xs text-gray-400">Saved on ${new Date(entry.created_at).toLocaleString()}</p>
+          `;
+
+          list.appendChild(li);
+        });
+      } catch (err) {
+        console.error("❌ Failed to fetch mood history:", err);
+        document.getElementById("historyList").innerHTML =
+          `<p class="text-red-600">⚠️ Error loading data. Try again later.</p>`;
+      }
+    }
+
+    window.onload = loadMoodHistory;
+  </script>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-blue-50 min-h-screen p-6">
+  <h1 class="text-3xl font-bold text-center text-blue-800 mb-6">🕒 Mood History</h1>
+
+  <ul id="historyList" class="max-w-xl mx-auto list-none p-0"></ul>
+
+  <div class="mt-8 flex justify-center">
+    <button onclick="window.location.href='index.html'"
+            class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">
+      🔙 Back to Home
+    </button>
+  </div>
+</body>
+</html>
