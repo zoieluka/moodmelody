@@ -7,23 +7,10 @@
   <script>
     const lastFmApiKey = "de8b1372bb7ccba147ad2618c1867233"; // Replace with your real key
 
-    function mapMoodToTag(mood) {
-      switch (mood.toLowerCase()) {
-        case "positive": return "happy";
-        case "negative": return "sad";
-        case "neutral": return "chill";
-        case "anger": return "metal";
-        case "fear": return "lofi";
-        case "joy": return "dance";
-        default: return "mood";
-      }
-    }
-
     async function fetchLastFmTracks() {
-      const mood = localStorage.getItem("userMood") || "neutral";
-      const tag = mapMoodToTag(mood);
+      const moodTag = localStorage.getItem("userMood") || "chill";
 
-      const url = `https://ws.audioscrobbler.com/2.0/?method=tag.gettoptracks&tag=${tag}&api_key=${lastFmApiKey}&format=json&limit=10`;
+      const url = `https://ws.audioscrobbler.com/2.0/?method=tag.gettoptracks&tag=${moodTag}&api_key=${lastFmApiKey}&format=json&limit=10`;
 
       try {
         const res = await fetch(url);
@@ -33,7 +20,7 @@
         list.innerHTML = "";
 
         if (!data.tracks || !data.tracks.track || data.tracks.track.length === 0) {
-          list.innerHTML = `<p class="text-red-600">⚠️ No tracks found for mood "${mood}".</p>`;
+          list.innerHTML = `<p class="text-red-600">⚠️ No tracks found for mood "${moodTag}".</p>`;
           return;
         }
 
