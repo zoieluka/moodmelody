@@ -3,54 +3,33 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Mood History</title>
-  <script>
-    async function loadMoodHistory() {
-      try {
-        const res = await fetch('/api/getMoods');
-        const data = await res.json();
-
-        const list = document.getElementById("historyList");
-        list.innerHTML = "";
-
-        if (!Array.isArray(data) || data.length === 0) {
-          list.innerHTML = `<p class="text-red-600">⚠️ No mood history found.</p>`;
-          return;
-        }
-
-        data.forEach(entry => {
-          const li = document.createElement("li");
-          li.className = "mb-4 p-4 bg-white rounded shadow-md";
-
-          li.innerHTML = `
-            <p class="font-semibold">Mood: ${entry.mood_text}</p>
-            <p class="text-sm text-gray-600">Genre: ${entry.genre}</p>
-            <p class="text-xs text-gray-400">Saved on ${new Date(entry.created_at).toLocaleString()}</p>
-          `;
-
-          list.appendChild(li);
-        });
-      } catch (err) {
-        console.error("❌ Failed to fetch mood history:", err);
-        document.getElementById("historyList").innerHTML =
-          `<p class="text-red-600">⚠️ Error loading data. Try again later.</p>`;
-      }
-    }
-
-    window.onload = loadMoodHistory;
-  </script>
+  <title>About MoodMelody</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-blue-50 min-h-screen p-6">
-  <h1 class="text-3xl font-bold text-center text-blue-800 mb-6">🕒 Mood History</h1>
+<body class="bg-gray-100 min-h-screen p-6">
+  <!-- Navigation Bar -->
+  <nav class="w-full max-w-4xl mx-auto mb-6 flex justify-between items-center p-4 bg-white rounded-xl shadow">
+    <h1 class="text-xl font-bold text-red-600">🎵 MoodMelody</h1>
+    <div class="space-x-4">
+      <a href="index.html" class="text-blue-600 hover:underline">Home</a>
+      <a href="history.html" class="text-blue-600 hover:underline">History</a>
+      <a href="about.html" class="text-blue-600 font-semibold">About</a>
+    </div>
+  </nav>
 
-  <ul id="historyList" class="max-w-xl mx-auto list-none p-0"></ul>
-
-  <div class="mt-8 flex justify-center">
-    <button onclick="window.location.href='index.html'"
-            class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">
-      🔙 Back to Home
-    </button>
-  </div>
+  <main class="max-w-3xl mx-auto bg-white p-6 rounded-xl shadow-md">
+    <h2 class="text-2xl font-bold mb-4 text-blue-700">About This Project</h2>
+    <p class="text-gray-700 mb-4">
+      MoodMelody is a web app created for the INST 377 final project. It helps users generate personalized music playlists based on their mood and preferred music genre.
+      By combining emotion analysis and real-time track data from the iTunes API, the app delivers a unique and dynamic music experience.
+    </p>
+    <p class="text-gray-700 mb-4">
+      The app uses frontend JavaScript (with Swiper.js and TailwindCSS), backend API routes built with Node.js, and a Supabase database to store user moods. 
+      It was designed with accessibility, creativity, and user personalization in mind.
+    </p>
+    <p class="text-gray-700">
+      Created by a student team at the University of Maryland. Special thanks to our instructors and classmates in INST 377 for support and feedback.
+    </p>
+  </main>
 </body>
 </html>
