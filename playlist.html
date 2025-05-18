@@ -15,7 +15,7 @@
       const allTracks = [];
 
       for (let term of terms) {
-        const url = `https://itunes.apple.com/search?term=${encodeURIComponent(term)}&media=music&limit=10`;
+        const url = `https://itunes.apple.com/search?term=${encodeURIComponent(term)}&media=music&limit=20`;
         try {
           const res = await fetch(url);
           const data = await res.json();
@@ -46,7 +46,6 @@
         const name = track.trackName || "Unknown";
         const artist = track.artistName || "Unknown";
         const appleMusicUrl = track.trackViewUrl || "#";
-        const spotifySearchUrl = `https://open.spotify.com/search/${encodeURIComponent(name + ' ' + artist)}`;
 
         const slide = document.createElement("div");
         slide.className = "swiper-slide text-center p-4";
@@ -54,10 +53,7 @@
           <img src="${artwork}" alt="Artwork" class="mx-auto rounded-xl shadow-md mb-4" />
           <p class="font-semibold text-lg">${name}</p>
           <p class="text-sm text-gray-600 mb-2">by ${artist}</p>
-          <a href="${appleMusicUrl}" target="_blank" class="text-pink-500 underline block mb-1">🍎 Apple Music</a>
-          <a href="${spotifySearchUrl}" target="_blank">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/8/84/Spotify_icon.svg" alt="Spotify" class="w-8 h-8 inline-block">
-          </a>
+          <a href="${appleMusicUrl}" target="_blank" class="text-blue-500 underline">🎵 Listen on Apple Music</a>
         `;
 
         swiperWrapper.appendChild(slide);
@@ -79,8 +75,8 @@
     }
 
     function regeneratePlaylist() {
-      const swiperWrapper = document.querySelector(".swiper-wrapper");
-      swiperWrapper.innerHTML = `<p class="text-gray-600 italic text-center">⏳ Generating a fresh playlist...</p>`;
+      const list = document.querySelector(".swiper-wrapper");
+      list.innerHTML = `<div class='text-center text-gray-600 italic'>⏳ Regenerating playlist...</div>`;
       fetchTracks();
     }
 
@@ -96,17 +92,14 @@
     <div class="swiper-wrapper">
       <!-- Slides will be inserted here -->
     </div>
-    <!-- Add Pagination -->
     <div class="swiper-pagination"></div>
-
-    <!-- Add Navigation -->
     <div class="swiper-button-next"></div>
     <div class="swiper-button-prev"></div>
   </div>
 
-  <div class="mt-10 flex flex-col sm:flex-row justify-center gap-4">
+  <div class="mt-8 flex flex-col sm:flex-row justify-center gap-4">
     <button onclick="regeneratePlaylist()" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">
-      🔄 Regenerate Playlist
+      🔄 Regenerate This Playlist
     </button>
     <button onclick="window.location.href='index.html'" class="bg-yellow-500 text-white px-6 py-2 rounded hover:bg-yellow-600">
       🏠 New Mood + Genre
