@@ -8,66 +8,67 @@
     const twinwordApiKey = "151c80fd18msh6bc1208d6296b6ep1b10b8jsna5e668379b92";
 
     async function generatePlaylist() {
-  const moodInput = document.getElementById("moodText").value.trim();
-  if (!moodInput) {
-    alert("Please describe how you're feeling.");
-    return;
-  }
+      const moodInput = document.getElementById("moodText").value.trim();
+      if (!moodInput) {
+        alert("Please describe how you're feeling.");
+        return;
+      }
 
-  try {
-    const res = await fetch("https://twinword-emotion-analysis-v1.p.rapidapi.com/analyze/", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-        "X-RapidAPI-Key": twinwordApiKey,
-        "X-RapidAPI-Host": "twinword-emotion-analysis-v1.p.rapidapi.com"
-      },
-      body: new URLSearchParams({ text: moodInput })
-    });
+      try {
+        const res = await fetch("https://twinword-emotion-analysis-v1.p.rapidapi.com/analyze/", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+            "X-RapidAPI-Key": twinwordApiKey,
+            "X-RapidAPI-Host": "twinword-emotion-analysis-v1.p.rapidapi.com"
+          },
+          body: new URLSearchParams({ text: moodInput })
+        });
 
-    const data = await res.json();
-    console.log("✅ FULL API RESPONSE:", data);
+        const data = await res.json();
+        console.log("✅ FULL API RESPONSE:", data);
 
-    if (!data || data.result_code !== "200") {
-      alert("❌ API failed: " + (data.message || "Unknown error"));
-      return;
-    }
+        if (!data || data.result_code !== "200") {
+          alert("❌ API failed: " + (data.message || "Unknown error"));
+          return;
+        }
 
-    const emotionScores = data.emotion;
-    if (!emotionScores) {
-      alert("❌ No emotion data found in response.");
-      return;
-    }
+        const emotionScores = data.emotion;
+        if (!emotionScores) {
+          alert("❌ No emotion data found in response.");
+          return;
+        }
 
-    let dominant = "neutral";
-    let maxScore = 0;
-    for (const [emotion, score] of Object.entries(emotionScores)) {
-      if (score > maxScore) {
-        maxScore = score;
-        dominant = emotion;
+        let dominant = "neutral";
+        let maxScore = 0;
+        for (const [emotion, score] of Object.entries(emotionScores)) {
+          if (score > maxScore) {
+            maxScore = score;
+            dominant = emotion;
+          }
+        }
+
+        // Map Twinword emotions to Last.fm tags
+        const tagMap = {
+          joy: "happy",
+          sadness: "sad",
+          anger: "metal",
+          fear: "lofi",
+          surprise: "experimental",
+          neutral: "chill"
+        };
+
+        const musicTag = tagMap[dominant] || "mood";
+        console.log("🎯 Dominant emotion:", dominant, "→ Music tag:", musicTag);
+
+        localStorage.setItem("userMood", musicTag);
+        window.location.href = "playlist.html";
+
+      } catch (err) {
+        console.error("❌ API call failed:", err);
+        alert("❌ Something went wrong. Check console for details.");
       }
     }
-
-    const tagMap = {
-      joy: "pop",
-      sadness: "acoustic",
-      anger: "metal",
-      fear: "ambient",
-      surprise: "experimental"
-    };
-
-    const musicTag = tagMap[dominant] || "chill";
-    console.log("🎯 Dominant emotion:", dominant, "→ Music tag:", musicTag);
-
-    localStorage.setItem("userMood", musicTag);
-    window.location.href = "playlist.html";
-
-  } catch (err) {
-    console.error("❌ API call failed:", err);
-    alert("❌ Something went wrong. Check console for details.");
-  }
-}
-
   </script>
 
   <script src="https://cdn.tailwindcss.com"></script>
