@@ -1,6 +1,8 @@
 // /api/saveMood.js
+
 import { createClient } from '@supabase/supabase-js';
 
+// Initialize Supabase client using Vercel environment variables
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_KEY
@@ -17,6 +19,7 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Missing moodText or genre' });
   }
 
+  // Insert into the "moods" table in Supabase
   const { data, error } = await supabase
     .from('moods')
     .insert([{ mood_text: moodText, genre }]);
