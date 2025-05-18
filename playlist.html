@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Your Mood Playlist</title>
   <script>
-    // ✨ Extract mood-relevant keywords from user's text input
     function extractMoodKeywords(text) {
       const raw = text.toLowerCase().split(/[\s,.;!?]+/);
       const moodTerms = ["sad", "happy", "calm", "emotional", "lonely", "excited", "angry", "joyful", "peaceful", "moody", "nostalgic", "romantic", "hopeful", "dark", "energetic", "soft", "mellow"];
@@ -13,12 +12,9 @@
       return matches.length ? matches : ["emotional", "mellow"];
     }
 
-    // 🔍 Search iTunes with genre+mood and get diverse results
     async function fetchMoodGenreTracks(genre, moodText) {
       const moodKeywords = extractMoodKeywords(moodText);
       const allTracks = [];
-
-      // Create combined search terms
       const searchCombos = moodKeywords.map(mood => `${genre} ${mood}`);
       searchCombos.push(`${genre} emotional`);
       searchCombos.push(`${genre} vibe`);
@@ -37,7 +33,6 @@
         }
       }
 
-      // Keep only 1 track per artist
       const seenArtists = new Set();
       const uniqueTracks = [];
 
@@ -53,7 +48,6 @@
       return uniqueTracks;
     }
 
-    // 🎨 Render the track list
     function renderPlaylist(tracks) {
       const list = document.getElementById("playlist");
       list.innerHTML = "";
@@ -109,10 +103,14 @@
 
   <ul id="playlist" class="max-w-2xl mx-auto list-none p-0"></ul>
 
-  <div class="mt-8 flex justify-center gap-4">
+  <div class="mt-10 flex flex-col sm:flex-row justify-center gap-4">
+    <button onclick="buildPlaylist()"
+            class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">
+      🔄 Regenerate This Playlist
+    </button>
     <button onclick="window.location.href='index.html'"
-            class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">
-      🔁 Start Over
+            class="bg-yellow-500 text-white px-6 py-2 rounded hover:bg-yellow-600">
+      🏠 New Mood + Genre
     </button>
   </div>
 </body>
