@@ -18,11 +18,17 @@
 
     async function fetchMoodGenreTracks(genre, moodText) {
       const moodKeywords = extractMoodKeywords(moodText);
+      const randomModifiers = ["mix", "session", "vibe", "track", "drop", "edition", "live", "set", "energy", "flow"];
       const allTracks = [];
 
-      const searchCombos = moodKeywords.map(mood => `${genre} ${mood}`);
-      searchCombos.push(`${genre} emotional`);
-      searchCombos.push(`${genre} vibe`);
+      const searchCombos = [];
+      moodKeywords.forEach(mood => {
+        const randomWord = randomModifiers[Math.floor(Math.random() * randomModifiers.length)];
+        searchCombos.push(`${genre} ${mood} ${randomWord}`);
+      });
+
+      searchCombos.push(`${genre} emotional ${randomModifiers[Math.floor(Math.random() * randomModifiers.length)]}`);
+      searchCombos.push(`${genre} vibe ${randomModifiers[Math.floor(Math.random() * randomModifiers.length)]}`);
 
       for (let term of searchCombos) {
         const url = `https://itunes.apple.com/search?term=${encodeURIComponent(term)}&media=music&limit=10`;
