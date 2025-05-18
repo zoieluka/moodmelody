@@ -5,116 +5,59 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Your Mood Playlist</title>
   <script>
-    const clientId = "aa09679baf1b486b84704e92b9103c6c"; // Make sure this matches your Spotify Developer App
-    const redirectUri = "https://moodmelody-ten.vercel.app/playlist.html"; // This must be in your Spotify Dashboard Redirect URIs
-    const scopes = "playlist-modify-public playlist-modify-private";
-    let accessToken;
+    const lastFmApiKey = "YOUR_LAST_FM_API_KEY"; // Replace with your real key
 
-    function mapMoodToSpotify(mood) {
-      switch (mood) {
-        case "positive": return { genre: "pop", valence: 0.9 };
-        case "negative": return { genre: "acoustic", valence: 0.2 };
-        case "neutral": return { genre: "chill", valence: 0.5 };
-        default: return { genre: "lofi", valence: 0.4 };
+    function mapMoodToTag(mood) {
+      switch (mood.toLowerCase()) {
+        case "positive": return "happy";
+        case "negative": return "sad";
+        case "neutral": return "chill";
+        case "anger": return "metal";
+        case "fear": return "lofi";
+        case "joy": return "dance";
+        default: return "mood";
       }
     }
 
-    function authorizeSpotify() {
-      const authUrl = `https://accounts.spotify.com/authorize?client_id=${clientId}&response_type=token&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scopes)}`;
-      window.location.href = authUrl;
-    }
-
-    async function fetchSpotifyRecommendations() {
+    async function fetchLastFmTracks() {
       const mood = localStorage.getItem("userMood") || "neutral";
-      const { genre, valence } = mapMoodToSpotify(mood);
+      const tag = mapMoodToTag(mood);
 
-      const url = `https://api.spotify.com/v1/recommendations?seed_genres=${genre}&target_valence=${valence}&limit=10`;
-      const res = await fetch(url, {
-        headers: { Authorization: `Bearer ${accessToken}` }
-      });
+      const url = `https://ws.audioscrobbler.com/2.0/?method=tag.gettoptracks&tag=${tag}&api_key=${lastFmApiKey}&format=json&limit=10`;
 
-      const data = await res.json();
-      const list = document.getElementById("playlist");
-      list.innerHTML = "";
+      try {
+        const res = await fetch(url);
+        const data = await res.json();
 
-      if (!data.tracks || data.tracks.length === 0) {
-        list.innerHTML = `<p class="text-red-600">⚠️ No songs found for mood "${mood}".</p>`;
-        return;
+        const list = document.getElementById("playlist");
+        list.innerHTML = "";
+
+        if (!data.tracks || !data.tracks.track || data.tracks.track.length === 0) {
+          list.innerHTML = `<p class="text-red-600">⚠️ No tracks found for mood "${mood}".</p>`;
+          return;
+        }
+
+        data.tracks.track.forEach(track => {
+          const li = document.createElement("li");
+          li.className = "mb-4 flex gap-4 items-center";
+          li.innerHTML = `
+            <img src="${track.image[1]['#text'] || 'https://via.placeholder.com/64'}" class="w-16 h-16 rounded shadow" />
+            <div>
+              <p class="font-semibold">${track.name}</p>
+              <p class="text-sm text-gray-600">${track.artist.name}</p>
+              <a href="${track.url}" target="_blank" class="text-blue-600 text-sm underline">🔗 Listen on Last.fm</a>
+            </div>
+          `;
+          list.appendChild(li);
+        });
+      } catch (err) {
+        console.error(err);
+        document.getElementById("playlist").innerHTML = `<p class="text-red-600">⚠️ Error loading playlist. Please try again later.</p>`;
       }
-
-      localStorage.setItem("track_uris", JSON.stringify(data.tracks.map(t => t.uri)));
-
-      data.tracks.forEach(track => {
-        const li = document.createElement("li");
-        li.className = "mb-4 flex gap-4 items-center";
-        li.innerHTML = `
-          <img src="${track.album.images[0].url}" class="w-16 h-16 rounded shadow" />
-          <div>
-            <p class="font-semibold">${track.name}</p>
-            <p class="text-sm text-gray-600">${track.artists[0].name}</p>
-            ${track.preview_url ? `<audio controls class="mt-1"><source src="${track.preview_url}" type="audio/mpeg"></audio>` : `<p class="text-xs text-red-500">No preview available</p>`}
-          </div>
-        `;
-        list.appendChild(li);
-      });
-    }
-
-    async function addToSpotify() {
-      const uris = JSON.parse(localStorage.getItem("track_uris")) || [];
-
-      const userRes = await fetch("https://api.spotify.com/v1/me", {
-        headers: { Authorization: `Bearer ${accessToken}` }
-      });
-      const user = await userRes.json();
-
-      const playlistRes = await fetch(`https://api.spotify.com/v1/users/${user.id}/playlists`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          name: "MoodMelody 🎵",
-          description: "Generated from your mood",
-          public: false
-        })
-      });
-
-      const playlist = await playlistRes.json();
-
-      await fetch(`https://api.spotify.com/v1/playlists/${playlist.id}/tracks`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ uris })
-      });
-
-      alert("✅ Playlist saved to your Spotify!");
     }
 
     window.onload = () => {
-      const hash = window.location.hash.substring(1);
-      const params = new URLSearchParams(hash);
-      accessToken = params.get("access_token");
-
-      console.log("Access Token:", accessToken);
-
-      // Retry guard to avoid infinite redirect loop
-      const attemptedAuth = window.location.href.includes("attemptedAuth=true");
-
-      if (!accessToken && !attemptedAuth) {
-        window.location.href = `${redirectUri}?attemptedAuth=true`;
-        authorizeSpotify();
-        return;
-      } else if (!accessToken) {
-        alert("❌ Spotify login failed. Please check your client ID and redirect URI settings.");
-        return;
-      }
-
-      window.location.hash = "";
-      fetchSpotifyRecommendations();
+      fetchLastFmTracks();
     };
   </script>
   <script src="https://cdn.tailwindcss.com"></script>
@@ -128,10 +71,6 @@
     <button onclick="window.location.href='index.html'"
             class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">
       🔁 Regenerate
-    </button>
-    <button onclick="addToSpotify()"
-            class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
-      💾 Add to Spotify
     </button>
   </div>
 </body>
