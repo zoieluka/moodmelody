@@ -1,5 +1,5 @@
 
-#Developer Manual for Mood Melody
+###Developer Manual for Mood Melody
 
 ## Installation & Setup Guide
 
