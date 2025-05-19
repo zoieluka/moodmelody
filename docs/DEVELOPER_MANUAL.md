@@ -22,7 +22,7 @@ moodmelody/
 ├── package.json             # package for dependency tracking if backend grows
 ├── README.md                # Project overview
 │
-└── docs/                    # TTechnical documentation
+└── docs/                    # Technical documentation
     └── DEVELOPER_MANUAL.md # Guide for future developers
 ```
 
