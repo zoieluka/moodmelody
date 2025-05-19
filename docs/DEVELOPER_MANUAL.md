@@ -7,21 +7,25 @@ This document is for future developers working on the MoodMelody web application
 
 ## Project Structure & Reference Overview
 
+
+```
 moodmelody/
-├── api/                          # Serverless API routes (deployed via Vercel)
-│   ├── getMoods.js              # GET endpoint to fetch recent mood history from Supabase
-│   └── saveMood.js              # POST endpoint to save new mood + genre entry to Supabase
+├── api/                      # Serverless API routes (Vercel)
+│   ├── getMoods.js          # GET endpoint to fetch recent mood history from Supabase
+│   └── saveMood.js          # POST endpoint to save new mood + genre entry to Supabase
 │
-├── index.html                   # Home page with mood and genre input form (uses Twinword API)
-├── playlist.html                # Playlist display using iTunes & Last.fm APIs + Swiper slider
-├── history.html                 # Mood history viewer (calls /api/getMoods)
-├── about.html                   # Project overview and credits
+├── index.html               # Home page with mood and genre input 
+├── playlist.html            # Displays curated songs using Last.fm + Sniper.Js 
+├── history.html             # Displays past mood history from Supabase
+├── about.html               # Project overview and team info
 │
-├── package.json                 # Defines npm dependencies (Supabase client)
-├── README.md                    # Project summary, setup, and usage
+├── package.json             # package for dependency tracking if backend grows
+├── README.md                # Project overview
 │
-└── docs/                        # Documentation directory
-    └── DEVELOPER_MANUAL.md     # Full technical manual for developers
+└── docs/                    # TTechnical documentation
+    └── DEVELOPER_MANUAL.md # Guide for future developers
+```
+
  
 
 
