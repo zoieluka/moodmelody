@@ -1,7 +1,7 @@
 
-## Developer Manual for Mood Melody
+#Developer Manual for Mood Melody
 
-# Installation & Setup Guide
+## Installation & Setup Guide
 
 This document is for future developers working on the MoodMelody web application. It includes installation instructions, how to run the app, API details, known issues, and a roadmap for future development. I hope this help better understand my project!
 
