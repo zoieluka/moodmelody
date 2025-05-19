@@ -299,6 +299,7 @@ This section explains how to manually test MoodMelody and documents all backend 
 - Add a dashboard for visualizing mood trends over time
 - Implement mood frequency, genre usage stats, etc.
 
+## Creator
 **Zoie Luka**  
 GitHub: [@zoieluka](https://github.com/zoieluka)  
 Role: Full-stack developer, UX designer, & project lead. Basically a one Women show!!
