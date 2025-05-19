@@ -1,5 +1,5 @@
 
-###Developer Manual for Mood Melody
+# Developer Manual for Mood Melody
 
 ## Installation & Setup Guide
 
@@ -211,7 +211,7 @@ This section explains how to manually test MoodMelody and documents all backend 
 
 ---
 
-## External APIs Used
+## 🌐 External APIs Used
 
 ### 1. **Twinword Sentiment Analysis API**
 - **Endpoint**: `https://twinword-sentiment-analysis.p.rapidapi.com/analyze/`
